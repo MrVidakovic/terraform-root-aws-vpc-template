@@ -1,0 +1,47 @@
+version: '3'
+
+vars:
+  PROFILE: '{{env "AWS_PROFILE" | default "default"}}'
+  ENVIRONMENT:
+    sh: |
+      case "{{.PROFILE}}" in
+        *-production) echo production ;;
+        *-stage) echo stage ;;
+        *) echo "ERROR: AWS_PROFILE '{{.PROFILE}}' must end with -production or -stage" >&2; exit 1 ;;
+      esac
+  TFVARS_FILE: '{{.ENVIRONMENT}}.tfvars'
+  STATE_KEY:
+    sh: |
+      CLUSTER_PRODUCT=$(grep -E '^cluster_product[[:space:]]*=' '{{.TFVARS_FILE}}' 2>/dev/null | awk -F'"' '{print $2}') && \
+      if [ -z "$CLUSTER_PRODUCT" ]; then \
+        CLUSTER_PRODUCT=$(grep -A5 '^variable "cluster_product"' variables.tf | grep 'default' | awk -F'"' '{print $2}'); \
+      fi && \
+      if [ -z "$CLUSTER_PRODUCT" ]; then \
+        echo "ERROR: cluster_product not found in {{.TFVARS_FILE}} or variables.tf default" >&2; exit 1; \
+      fi && \
+      CLUSTER_NAME=$(grep -E '^cluster_name[[:space:]]*=' '{{.TFVARS_FILE}}' | awk -F'"' '{print $2}') && \
+      if [ -z "$CLUSTER_NAME" ]; then \
+        echo "ERROR: cluster_name not found in {{.TFVARS_FILE}}" >&2; exit 1; \
+      fi && \
+      echo "${CLUSTER_PRODUCT}/{{.ENVIRONMENT}}/${CLUSTER_NAME}.tfstate"
+
+tasks:
+  init:
+    desc: Initialize Terraform for the current profile and environment
+    cmds:
+      - echo "Initializing Terraform for profile={{.PROFILE}} environment={{.ENVIRONMENT}} state={{.STATE_KEY}}..."
+      - terraform init -reconfigure -backend-config="profile={{.PROFILE}}" -backend-config="key={{.STATE_KEY}}"
+
+  plan:
+    desc: Plan Terraform for the current environment
+    cmds:
+      - task: init
+      - echo "Planning with {{.TFVARS_FILE}}..."
+      - terraform plan -var-file="{{.TFVARS_FILE}}"
+
+  apply:
+    desc: Apply Terraform for the current environment
+    cmds:
+      - task: init
+      - echo "Applying with {{.TFVARS_FILE}}..."
+      - terraform apply -var-file="{{.TFVARS_FILE}}"
