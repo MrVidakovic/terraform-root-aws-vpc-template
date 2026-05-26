@@ -20,7 +20,7 @@ Typical triggers include:
 
 Do not use this skill for non-Terraform application code, general infrastructure discussions without code changes, or unrelated repository housekeeping.
 
-Apply these rules to both module code and root-module code unless the user explicitly asks for something else.
+For root-module-specific conventions, also use `terraform-root-module-standards` and follow `docs/terraform-root-module-standards.md`.
 
 `docs/terraform-standards.md` is the canonical source of truth. Follow it for the full standards and keep any Terraform changes aligned with it.
 

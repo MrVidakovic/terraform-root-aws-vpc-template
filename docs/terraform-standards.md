@@ -2,7 +2,9 @@
 
 Use these standards for any Terraform work, including `.tf`, `.tfvars`, Terraform modules, root modules, Terraform repository maintenance, and Terraform validation and documentation workflows.
 
-These rules apply to both module code and root-module code unless the task explicitly requires a deviation.
+These are the baseline standards for all Terraform code.
+
+When the task is specific to a Terraform root module, also follow `docs/terraform-root-module-standards.md`.
 
 ## Core Behavior
 
@@ -62,11 +64,13 @@ These rules apply to both module code and root-module code unless the task expli
 
 ## Required Terraform Files
 
-Unless the related content is genuinely absent, Terraform code should include:
+Unless the related content is genuinely absent, reusable Terraform modules should include:
 
 - `variables.tf` for variable declarations used by the code.
 - `outputs.tf` for outputs produced by the code.
 - `versions.tf` for Terraform and provider version requirements.
+
+For root modules, use `docs/terraform-root-module-standards.md` for the file placement rules around Terraform core and provider configuration.
 
 ## Required Repository Files
 
